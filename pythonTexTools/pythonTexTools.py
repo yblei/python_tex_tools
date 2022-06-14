@@ -1,11 +1,10 @@
 # This file was created to export the results of python calculations to tech
 # we can add variables to a list and later export the List to a .tex file which we can
 # include in the project
-import enum
 import tikzplotlib
 import os
-import numpy as np
 import matplotlib.pyplot as plt
+
 
 class tex_exporter:
     """
@@ -14,7 +13,9 @@ class tex_exporter:
     a .tex file which only needs to be included in your tex project.
     """
 
-    def __init__(self, dir_name=None, res_file_name="python_results.tex") -> None:
+    def __init__(
+        self, dir_name=None, res_file_name="python_results.tex", verbose=False
+    ) -> None:
         """Initializes the tex_exporter class.
 
         Args:
@@ -42,6 +43,7 @@ class tex_exporter:
         self.fig_list = []  # Name; Figure
         self.var_function_prefix = "var"
         self.fig_function_prefix = "tikz"
+        self.verbose = verbose
 
     def add_var(self, name, value, unit_name=""):
         if not type(value) == str:
@@ -50,14 +52,20 @@ class tex_exporter:
             unit_name = " " + unit_name
 
         self.var_list.append([name, value, unit_name])
+        if self.verbose:
+            print(f"New Variable: \\{self.var_function_prefix}{name}")
 
     def add_figure(self, name: str, figure: plt.figure, tikzplotlib_params=None):
         if tikzplotlib_params is not None:
-            tikz_code = tikzplotlib.get_tikz_code(figure, table_row_sep="\\\\", **tikzplotlib_params)
+            tikz_code = tikzplotlib.get_tikz_code(
+                figure, table_row_sep="\\\\", **tikzplotlib_params
+            )
         else:
             tikz_code = tikzplotlib.get_tikz_code(figure, table_row_sep="\\\\")
 
         self.fig_list.append([name, tikz_code])
+        if self.verbose:
+            print(f"New Figure:  \\{self.fig_function_prefix}{name}")
 
     def export(self):
         var_file_path = os.path.join(self.dir_name, self.var_file_name)
@@ -80,7 +88,7 @@ class tex_exporter:
             )
         print("Figures:")
         for i, e in enumerate(self.fig_list):
-            print("\\"+self.fig_function_prefix+e[0])
+            print("\\" + self.fig_function_prefix + e[0])
             f.write(
                 "\\newcommand{\\"
                 + self.fig_function_prefix
