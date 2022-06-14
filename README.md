@@ -10,7 +10,7 @@ This package provides a simple way to export information from Python to LaTeX fo
 ## Usage:
 
 1. Initialize the object: `exporter = tex_exporter(dir_name=\<Name of the output directory\>)`
-2. Add a variable to the tes_exporter object: `exporter.add_var(my_variable_name, my_value)`
+2. Add a variable to the tex_exporter object: `exporter.add_var(my_variable_name, my_value)`
 3. Create the .tex File after you've added all information to the exporter: `exporter.export()`
 
 The files are then written to a .tex file in your output directory. You can include this
