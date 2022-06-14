@@ -51,8 +51,12 @@ class tex_exporter:
 
         self.var_list.append([name, value, unit_name])
 
-    def add_figure(self, name: str, figure: plt.figure, tikzplotlib_params):
-        tikz_code = tikzplotlib.get_tikz_code(figure, table_row_sep="\\\\", **tikzplotlib_params)
+    def add_figure(self, name: str, figure: plt.figure, tikzplotlib_params=None):
+        if tikzplotlib_params is not None:
+            tikz_code = tikzplotlib.get_tikz_code(figure, table_row_sep="\\\\", **tikzplotlib_params)
+        else:
+            tikz_code = tikzplotlib.get_tikz_code(figure, table_row_sep="\\\\")
+
         self.fig_list.append([name, tikz_code])
 
     def export(self):
