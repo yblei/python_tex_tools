@@ -63,7 +63,8 @@ class tex_exporter:
         var_file_path = os.path.join(self.dir_name, self.var_file_name)
         print("Writing output to %s." % var_file_path)
         f = open(var_file_path, "wt")
-        print("Exporting elements as LaTex functions:")
+        print("Exporting elements as LaTex functions")
+        print("Variables:")
         for i, e in enumerate(self.var_list):
             print("\\" + self.var_function_prefix + e[0])
             f.write(
@@ -77,8 +78,9 @@ class tex_exporter:
                 + "}"
                 + "\n"
             )
+        print("Figures:")
         for i, e in enumerate(self.fig_list):
-            print("Figure: %s" % e[0])
+            print("\\"+self.fig_function_prefix+e[0])
             f.write(
                 "\\newcommand{\\"
                 + self.fig_function_prefix
