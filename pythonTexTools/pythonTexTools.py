@@ -4,6 +4,7 @@
 import tikzplotlib
 import os
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 
 
 class tex_exporter:
@@ -41,8 +42,10 @@ class tex_exporter:
         self.dir_name = dir_name
         self.var_list = []  # Name; Value
         self.fig_list = []  # Name; Figure
+        self.tab_list = []  # Name; Table
         self.var_function_prefix = "var"
         self.fig_function_prefix = "tikz"
+        self.tab_function_prefix = "tab"
         self.verbose = verbose
 
     def add_var(self, name, value, unit_name=""):
@@ -66,6 +69,12 @@ class tex_exporter:
         self.fig_list.append([name, tikz_code])
         if self.verbose:
             print(f"New Figure:  \\{self.fig_function_prefix}{name}")
+
+    def add_table(self, name: str, table):
+        table_code = tabulate(table, tablefmt="latex")
+        self.tab_list.append([name, table_code])
+        if self.verbose:
+            print(f"New Table:  \\{self.tab_function_prefix}{name}")
 
     def export(self):
         var_file_path = os.path.join(self.dir_name, self.var_file_name)
@@ -98,7 +107,23 @@ class tex_exporter:
                 + "}"
                 + "\n"
             )
+
+        print("Tables:")
+        for i, e in enumerate(self.tab_list):
+            print("\\" + self.tab_function_prefix + e[0])
+            f.write(
+                "\\newcommand{\\"
+                + self.tab_function_prefix
+                + e[0]
+                + "}{"
+                + e[1]
+                + "}"
+                + "\n"
+            )
         f.close()
+
 
         # clear all data
         self.var_list = []
+        self.fig_list = []
+        self.tab_list = []
