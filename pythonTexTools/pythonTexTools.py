@@ -1,6 +1,7 @@
 # This file was created to export the results of python calculations to tech
 # we can add variables to a list and later export the List to a .tex file which we can
 # include in the project
+from typing import List
 import tikzplotlib
 import os
 import matplotlib.pyplot as plt
@@ -70,8 +71,8 @@ class tex_exporter:
         if self.verbose:
             print(f"New Figure:  \\{self.fig_function_prefix}{name}")
 
-    def add_table(self, name: str, table):
-        table_code = tabulate(table, tablefmt="latex")
+    def add_table(self, name: str, table, headers: List[str] = "firstrow"):
+        table_code = tabulate(table, tablefmt="latex", headers=headers)
         self.tab_list.append([name, table_code])
         if self.verbose:
             print(f"New Table:  \\{self.tab_function_prefix}{name}")
