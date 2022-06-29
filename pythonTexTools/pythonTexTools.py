@@ -1,6 +1,7 @@
 # This file was created to export the results of python calculations to tech
 # we can add variables to a list and later export the List to a .tex file which we can
 # include in the project
+from multiprocessing.sharedctypes import Value
 from typing import List
 import tikzplotlib
 import os
@@ -50,6 +51,7 @@ class tex_exporter:
         self.verbose = verbose
 
     def add_var(self, name, value, unit_name=""):
+        self.check_name_consistency(name)
         if not type(value) == str:
             value = str(value)  # Try to convert to string if it is not
         if not unit_name == "":
@@ -60,6 +62,7 @@ class tex_exporter:
             print(f"New Variable: \\{self.var_function_prefix}{name}")
 
     def add_figure(self, name: str, figure: plt.figure, tikzplotlib_params=None):
+        self.check_name_consistency(name)
         if tikzplotlib_params is not None:
             tikz_code = tikzplotlib.get_tikz_code(
                 figure, table_row_sep="\\\\", **tikzplotlib_params
@@ -72,13 +75,30 @@ class tex_exporter:
             print(f"New Figure:  \\{self.fig_function_prefix}{name}")
 
     def add_table(self, name: str, table, headers: List[str] = "firstrow"):
+        self.check_name_consistency(name)
         table_code = tabulate(table, tablefmt="latex", headers=headers)
         self.tab_list.append([name, table_code])
         if self.verbose:
             print(f"New Table:  \\{self.tab_function_prefix}{name}")
 
-    def export(self):
-        var_file_path = os.path.join(self.dir_name, self.var_file_name)
+    def check_name_consistency(self, name: str):
+        """Latex variable names should only contain chars.
+
+        Args:
+            name (str): the string to check
+        """
+        if any(not char.isalpha() for char in name):
+            raise ValueError("Only chars are permitted in latex variable names.")
+
+    def export(self, alternative_export_path=None):
+
+
+        if alternative_export_path is None:
+            var_file_path = os.path.join(self.dir_name, self.var_file_name)
+        else:
+            var_file_path = os.path.join(alternative_export_path, self.var_file_name)
+            print(f"Exporting to alternate file: {var_file_path}")
+
         print("Writing output to %s." % var_file_path)
         f = open(var_file_path, "wt")
         print("Exporting elements as LaTex functions")
@@ -122,9 +142,3 @@ class tex_exporter:
                 + "\n"
             )
         f.close()
-
-
-        # clear all data
-        self.var_list = []
-        self.fig_list = []
-        self.tab_list = []
