@@ -54,10 +54,14 @@ class tex_exporter:
         self.check_name_consistency(name)
         if not type(value) == str:
             value = str(value)  # Try to convert to string if it is not
-        if not unit_name == "":
-            unit_name = " " + unit_name
+        if unit_name == "":
+            # apply as number
+            value="\\num{"+value+"}"
 
-        self.var_list.append([name, value, unit_name])
+        if not unit_name == "":
+            value="\\SI{"+value+"}{"+unit_name+"}"
+
+        self.var_list.append([name, value])
         if self.verbose:
             print(f"New Variable: \\{self.var_function_prefix}{name}")
 
@@ -76,7 +80,16 @@ class tex_exporter:
 
     def add_table(self, name: str, table, headers: List[str] = "firstrow"):
         self.check_name_consistency(name)
-        table_code = tabulate(table, tablefmt="latex", headers=headers)
+        table_code = tabulate(table, tablefmt="latex_raw", headers=headers)
+
+        # replace hline with tpp and bottomrule
+        table_code = table_code.replace(r"\hline", r"\midrule")
+        table_code = table_code.replace(r"\midrule", r"\toprule",1)
+
+        # replace the last -> replace first in reversed string
+        target_reverse = (r"\midrule")[::-1]
+        table_code = (table_code[::-1].replace(target_reverse, (r"\bottomrule")[::-1], 1))[::-1]
+
         self.tab_list.append([name, table_code])
         if self.verbose:
             print(f"New Table:  \\{self.tab_function_prefix}{name}")
@@ -111,9 +124,7 @@ class tex_exporter:
                 + e[0]
                 + "}{"
                 + e[1]
-                + "\\:"
-                + e[2]
-                + "}"
+                + "}" #+ "\\:" re enable this later!
                 + "\n"
             )
         print("Figures:")
