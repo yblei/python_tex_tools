@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pythonTexTools"
+name = "python_tex_tools"
 version = "0.0.1"
 authors = [
     { name = "Yannik Blei", email = "yannik.blei@utn.de" },

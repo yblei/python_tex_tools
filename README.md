@@ -6,6 +6,8 @@ This package provides a simple way to export information from Python to LaTeX fo
 
 - Clone the repo
 - Install with `pip install -e .` or `pip install -e .[dev]`
+- You need to have a working tex installation on your machine to enable pgf 
+figure export `sudo apt-get install texlive-full`
 
 
 ## Usage:
