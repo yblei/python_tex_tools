@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pythonTexTools"
+version = "0.0.1"
+authors = [
+    { name = "Yannik Blei", email = "yannik.blei@utn.de" },
+]
+description = "Tool to simplify latex export from python."
+requires-python = ">=3.9" # NOTE: oldest non-EOL python (update on 10.2025)
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[project.optional-dependencies]
+dev = [
+    "pycodestyle==2.12.1",
+    "pyright==1.1.381",
+    "autopep8==2.3.1",
+    "isort==5.13.2"
+]
+
+[tool.autopep8]
+max_line_length = 79
+in-place = true
+recursive = true
+
+[tool.isort]
+multi_line_output = 3
+line_length = 79
+include_trailing_comma = true
+use_parentheses = true

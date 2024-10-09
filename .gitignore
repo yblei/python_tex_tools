@@ -130,3 +130,7 @@ dmypy.json
 
 *.save
 .vscode/settings.json
+
+# direnv
+.envrc
+.direnv
