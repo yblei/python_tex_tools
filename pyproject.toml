@@ -11,6 +11,7 @@ authors = [
 description = "Tool to simplify latex export from python."
 requires-python = ">=3.9" # NOTE: oldest non-EOL python (update on 10.2025)
 
+dynamic = ["dependencies"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
@@ -19,7 +20,10 @@ dev = [
     "pycodestyle==2.12.1",
     "pyright==1.1.381",
     "autopep8==2.3.1",
-    "isort==5.13.2"
+    "isort==5.13.2",
+    "pytest",
+    "matplotlib",
+    "numpy",
 ]
 
 [tool.autopep8]
