@@ -3,10 +3,17 @@
 # include in the project
 from multiprocessing.sharedctypes import Value
 from typing import List
-import tikzplotlib
+
+TIKZPLOTLIB_AVAILABLE = True
+try:
+    import tikzplotlib
+except ImportError:
+    TIKZPLOTLIB_AVAILABLE = False
+    
 import os
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+import tempfile
 
 
 class tex_exporter:
@@ -40,6 +47,11 @@ class tex_exporter:
             if not os.path.exists(dir_name):
                 raise FileNotFoundError("Path %s does not exist" % dir_name)
         self.var_file_name = res_file_name
+        
+        # make a temporary directory
+        self.tmp_dir = tempfile.mkdtemp()
+        if not os.path.exists(self.tmp_dir):
+            os.makedirs(self.tmp_dir)
 
         self.dir_name = dir_name
         self.var_list = []  # Name; Value
@@ -66,6 +78,22 @@ class tex_exporter:
             print(f"New Variable: \\{self.var_function_prefix}{name}")
 
     def add_figure(self, name: str, figure: plt.figure, tikzplotlib_params=None):
+        if TIKZPLOTLIB_AVAILABLE:
+            self.add_figure_tikzplotlib(name, figure, tikzplotlib_params)
+        else:
+            #raise NotImplementedError("tikzplotlib is not available. This could be related to deprecation.")
+            self.add_figure_pgfplots(name, figure)
+            
+    def add_figure_pgfplots(self, name: str, figure: plt.figure):
+        self.check_name_consistency(name)
+        
+        # save the figure as a pgf file in the temporary directory
+        pgf_file_path = os.path.join(self.tmp_dir, name + ".pgf")
+        self.fig_list.append([name, pgf_file_path])
+        
+        
+        
+    def add_figure_tikzplotlib(self, name: str, figure: plt.figure, tikzplotlib_params=None):
         self.check_name_consistency(name)
         if tikzplotlib_params is not None:
             tikz_code = tikzplotlib.get_tikz_code(
@@ -129,16 +157,23 @@ class tex_exporter:
             )
         print("Figures:")
         for i, e in enumerate(self.fig_list):
-            print("\\" + self.fig_function_prefix + e[0])
-            f.write(
-                "\\newcommand{\\"
-                + self.fig_function_prefix
-                + e[0]
-                + "}{"
-                + e[1]
-                + "}"
-                + "\n"
-            )
+            # if the figure is a pgf file, we need to copy it to the output dir
+            if os.path.isfile(e[1]):
+                pgf_file_path = os.path.join(self.tmp_dir, e[0] + ".pgf")
+                with open(pgf_file_path, "w") as pgf_file:
+                    pgf_file.write(e[1])
+                e[1] = pgf_file_path
+            else:
+                print("\\" + self.fig_function_prefix + e[0])
+                f.write(
+                    "\\newcommand{\\"
+                    + self.fig_function_prefix
+                    + e[0]
+                    + "}{"
+                    + e[1]
+                    + "}"
+                    + "\n"
+                )
 
         print("Tables:")
         for i, e in enumerate(self.tab_list):
@@ -153,3 +188,8 @@ class tex_exporter:
                 + "\n"
             )
         f.close()
+        
+    def __del__(self):
+        # remove the temporary directory
+        import shutil
+        shutil.rmtree(self.tmp_dir)
