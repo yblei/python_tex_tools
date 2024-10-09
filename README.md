@@ -5,7 +5,8 @@ This package provides a simple way to export information from Python to LaTeX fo
 ## Setup:
 
 - Clone the repo
-- Install with `pip install -e` .
+- Install with `pip install -e .` or `pip install -e .[dev]`
+
 
 ## Usage:
 
