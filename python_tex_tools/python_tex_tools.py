@@ -13,10 +13,11 @@ except ImportError:
 import os
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-from tabulate import tabulate
 import tempfile
 import shutil
 from pathlib import Path
+from .utils import print_best_values_fat
+import pandas as pd
 
 
 class TexExporter:
@@ -66,40 +67,16 @@ class TexExporter:
         if self.verbose:
             print(f"New Variable: \\{self.var_function_prefix}{name}")
 
-    def add_figure(self, name: str, figure: plt.figure, plotlib_params=None, article_type="single_column"):
+    def add_figure(self, name: str, figure: plt.figure):
         if TIKZPLOTLIB_AVAILABLE:
             self.add_figure_tikzplotlib(name, figure, plotlib_params)
         else:
             #raise NotImplementedError("tikzplotlib is not available. This could be related to deprecation.")
-            self.add_figure_pgfplots(name, figure, plotlib_params, article_type)
+            self.add_figure_pgfplots(name, figure)
             
-    def add_figure_pgfplots(self, name: str, figure: plt.figure, plotlib_params: dict, article_type: str):
+    def add_figure_pgfplots(self, name: str, figure: plt.figure):
         self.check_name_consistency(name)
-        
-        figsize_default = { # default figure size in inches
-            "single_column": (4.9, 3.5),
-            "double_column": (2.45, 1.75),
-        }    
-        
-        default_settings = {
-                #"pgf.texsystem": "pdflatex",  # Use LaTeX for processing
-                "figure.figsize" : figsize_default[article_type],
-                "font.family": "serif",       # Use serif fonts
-                "text.usetex": True,          # Enable LaTeX
-                "pgf.rcfonts": False,         # Don't use rc settings for fonts
-                "text.latex.preamble": r"\usepackage{amsmath}\usepackage{amssymb}\usepackage{siunitx}[=v2]"
-            }
-        
-        # Configure LaTeX settings for matplotlib
-        if plotlib_params is not None:
-            # update default settings with user-defined settings
-            for key, value in plotlib_params.items():
-                rcParams[key] = value
-            rcParams.update(plotlib_params)
-        else:
-            # using default settings for pgfplots
-            rcParams.update(default_settings)
-        
+                
         # save the figure as a pgf file in the temporary directory
         pgf_file_path = os.path.join(self.tmp_dir, name + ".pgf")
         figure.savefig(pgf_file_path, format="pgf")
@@ -119,9 +96,29 @@ class TexExporter:
         if self.verbose:
             print(f"New Figure:  \\{self.fig_function_prefix}{name}")
 
-    def add_table(self, name: str, table, headers: List[str] = "firstrow"):
+    def add_table(self, name: str, table: pd.DataFrame, print_best_values_bf: bool = True, bf_options: dict = None):
         self.check_name_consistency(name)
-        table_code = tabulate(table, tablefmt="latex_raw", headers=headers)
+        
+            # check, if df is a pandas dataframe
+        if not isinstance(table, pd.DataFrame):
+            raise ValueError("The input table is not a pandas DataFrame.")
+        
+        bf_default_options = {
+            "axis": 0,
+            "higher_or_lower_is_better": "higher", # could als be an array like ["higher", "lower", "higher", "lower"] with the same length as the number of columns/ rows in the table
+        }
+        
+        if bf_options is not None:
+            for key, value in bf_default_options.items():
+                if key not in bf_options:
+                    raise ValueError(f"Unsupported key {key}. Supported Keys are: {bf_default_options.keys()}")
+                else:
+                    bf_default_options[key] = bf_options[key]
+        
+        if print_best_values_bf:
+            table = print_best_values_fat(table, **bf_default_options)
+        
+        table_code = table.to_latex(escape=False)
 
         # replace hline with tpp and bottomrule
         table_code = table_code.replace(r"\hline", r"\midrule")
@@ -151,8 +148,11 @@ class TexExporter:
 
         print("Writing output to %s." % var_file_path)
         f = open(var_file_path, "wt")
-        print("Exporting elements as LaTex functions")
-        print("Variables:")
+        
+        print("Exporting elements as LaTex functions. PGF files will be copied to the output directory.")
+        
+        if len(self.var_list) > 0:
+            print("Variables:")
         for i, e in enumerate(self.var_list):
             print("\\" + self.var_function_prefix + e[0])
             f.write(
@@ -165,25 +165,31 @@ class TexExporter:
                 + "\n"
             )
             
-        print("Figures:")
-        for i, e in enumerate(self.fig_list):
-            # if the figure is a pgf file, we need to copy it to the output dir
-            if e[1].endswith(".pgf"):
-                pgf_file_path = os.path.join(export_path, e[0] + ".pgf")
-                shutil.copy(e[1], pgf_file_path)
-            else:
-                print("\\" + self.fig_function_prefix + e[0])
-                f.write(
-                    "\\newcommand{\\"
-                    + self.fig_function_prefix
-                    + e[0]
-                    + "}{"
-                    + e[1]
-                    + "}"
-                    + "\n"
-                )
-
-        print("Tables:")
+        if len(self.fig_list) > 0:
+            print("")
+            print("Figures:")
+            for i, e in enumerate(self.fig_list):
+                # if the figure is a pgf file, we need to copy it to the output dir
+                if e[1].endswith(".pgf"):
+                    pgf_file_name = os.path.basename(e[0] + ".pgf")
+                    pgf_file_path = os.path.join(export_path, pgf_file_name)
+                    shutil.copy(e[1], pgf_file_path)
+                    print(pgf_file_name)
+                else:
+                    print("\\" + self.fig_function_prefix + e[0])
+                    f.write(
+                        "\\newcommand{\\"
+                        + self.fig_function_prefix
+                        + e[0]
+                        + "}{"
+                        + e[1]
+                        + "}"
+                        + "\n"
+                    )        
+                
+        if len(self.tab_list) > 0:
+            print("")
+            print("Tables:")
         for i, e in enumerate(self.tab_list):
             print("\\" + self.tab_function_prefix + e[0])
             f.write(
