@@ -134,3 +134,5 @@ dmypy.json
 # direnv
 .envrc
 .direnv
+python_results.tex
+TestFigure.pgf

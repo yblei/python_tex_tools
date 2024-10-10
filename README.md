@@ -3,18 +3,58 @@
 This package provides a simple way to export information from Python to LaTeX for automatic document production such as reports or student projects.
  
 ## Setup:
+### Usage:
+Simply execute the command below and you're good to go:
+```
+pip install git+ssh://git@github.com/yblei/pythonTexTools.git
+```
+#### Notes on exporting figures
+We rely on LaTeX libraries to export the figures as PGF files.
+If you did not install TeX yet, run: 
 
-- Clone the repo
-- Install with `pip install -e .` or `pip install -e .[dev]`
-- You need to have a working tex installation on your machine to enable pgf 
-figure export `sudo apt-get install texlive-full`
+```
+sudo apt-get install texlive-full
+```
 
 
-## Usage:
+### Development:
+- Clone the repo.
+- Install dev dependencies with `pip install -e .[dev]`
 
-1. Initialize the object: `exporter = tex_exporter(dir_name=\<Name of the output directory\>)`
-2. Add a variable to the tex_exporter object: `exporter.add_var(my_variable_name, my_value)`
-3. Create the .tex File after you've added all information to the exporter: `exporter.export()`
+## Minimum Example:
+Please check [demo.ipynb](./demo.ipynb) to try yourself!
+Notes on how to include this in your LaTeX are given **in this file as well**.
+
+ ```
+ test_exporter = TexExporter()
+
+ exporter.add_var(my_variable_name, my_value)
+
+ with make_plt_look_like_latex():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    x = np.linspace(0, 10, 1000)
+    y = -np.sin(x)
+
+    ax.plot(x, y)
+
+test_exporter.add_figure("TestFigure", fig)
+
+# Make a demo table
+table = np.random.rand(2, 2).round(2)
+table = pd.DataFrame(table)
+
+# set row names
+table.index = ["Row1", "Row2"]
+
+# set col names
+table.columns = ["Col1", "Col2"]
+
+test_exporter.add_table("TestTable", table)
+
+test_exporter.export(export_path=cwd)
+ ```
+
 
 The files are then written to a .tex file in your output directory. You can include this
 file in you latex document by using \include{document_name.tex}. All previously added
