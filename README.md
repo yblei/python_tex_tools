@@ -21,7 +21,7 @@ sudo apt-get install texlive-full
 - Clone the repo.
 - Install dev dependencies with `pip install -e .[dev]`
 
-## Minimum Example:
+## Minimal Example:
 Please check [demo.ipynb](./demo.ipynb) to try yourself!
 Notes on how to include this in your LaTeX are given **in this file as well**.
 
