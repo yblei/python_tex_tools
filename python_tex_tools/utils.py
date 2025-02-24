@@ -33,9 +33,12 @@ def print_best_values_fat(df: pd.DataFrame, axis:int = 0, higher_or_lower_is_bet
     if isinstance(higher_or_lower_is_better, str):
         higher_or_lower_is_better = [higher_or_lower_is_better for _ in range(df_numerical_only.shape[axis])]
         
+    # rows and columns are inverted in the following test     
+    test_axis = (0 if axis == 1 else 1)
+    
     # check if the length of the higher_or_lower_is_better list is the same as the number of columns/ rows in the table
-    if len(higher_or_lower_is_better) != df_numerical_only.shape[axis]:
-        raise ValueError(f"The length of the higher_or_lower_is_better list ({len(higher_or_lower_is_better)}) does not match the number of columns/ rows in the table ({df_numerical_only.shape[axis]}).")
+    if len(higher_or_lower_is_better) != df_numerical_only.shape[test_axis]:
+        raise ValueError(f"The length of the higher_or_lower_is_better list ({len(higher_or_lower_is_better)}) does not match the number of columns/ rows in the table ({df_numerical_only.shape[test_axis]}).")
     
     # add the up/ down arrows to the entries in the rows/ columns names
     if axis == 0:

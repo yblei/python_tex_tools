@@ -97,6 +97,14 @@ class TexExporter:
             print(f"New Figure:  \\{self.fig_function_prefix}{name}")
 
     def add_table(self, name: str, table: pd.DataFrame, print_best_values_bf: bool = True, bf_options: dict = None):
+        """_summary_
+
+        Args:
+            name (str): The Name to be used.
+            table (pd.DataFrame): A Table with the Information. Index and Columns will be used.
+            print_best_values_bf (bool, optional): Weather to print the best values bold in LaTex export. Defaults to True.
+            bf_options (dict, optional): Specifications on what to print bold (Details in source code). Defaults to None.
+        """
         self.check_name_consistency(name)
         
             # check, if df is a pandas dataframe
@@ -104,7 +112,7 @@ class TexExporter:
             raise ValueError("The input table is not a pandas DataFrame.")
         
         bf_default_options = {
-            "axis": 0,
+            "axis": 0, # 0 best in columns, 1 best in rows
             "higher_or_lower_is_better": "higher", # could als be an array like ["higher", "lower", "higher", "lower"] with the same length as the number of columns/ rows in the table
         }
         
