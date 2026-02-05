@@ -1,4 +1,3 @@
-tikzplotlib
 tabulate
 pandas
 jinja2
