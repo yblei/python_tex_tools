@@ -13,7 +13,7 @@ class make_plt_look_like_latex:
         """
         figsize_default = { # default figure size in inches
             "single_column": (3.5, 2.75),
-            "double_column": (7, 5.5),
+            "double_column": (7.2, 3.5),
         }    
         
         self.default_settings = {
