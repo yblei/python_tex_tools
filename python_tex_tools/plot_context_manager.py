@@ -2,15 +2,23 @@ import matplotlib.pyplot as plt
 import copy
 
 class make_plt_look_like_latex:
-    def __init__(self, matplotlib_params: dict = None, diagram_size: str = "single_column"):
+    def __init__(self, matplotlib_params: dict | tuple = None, diagram_size: str = "single_column"):
+        """Context manager to make a matplotlib figure look like latex. 
+
+        Args:
+            matplotlib_params (dict, optional): Optional MPL parameters. Defaults to None.
+            diagram_size (str | tuple, optional): Figure size preset or custom dimensions. 
+                Use "single_column" or "double_column" for IEEE paper layout presets, 
+                or provide a custom (width, height) tuple in inches. Defaults to "single_column".
+        """
         figsize_default = { # default figure size in inches
-            "single_column": (4.9, 3.5),
-            "double_column": (2.45, 1.75),
+            "single_column": (3.5, 2.75),
+            "double_column": (7, 5.5),
         }    
         
         self.default_settings = {
                 #"pgf.texsystem": "pdflatex",  # Use LaTeX for processing
-                "figure.figsize" : figsize_default[diagram_size],
+                "figure.figsize" : figsize_default[diagram_size] if isinstance(diagram_size, str) else diagram_size,
                 "font.family": "serif",       # Use serif fonts
                 "text.usetex": True,          # Enable LaTeX
                 "pgf.rcfonts": False,         # Don't use rc settings for fonts
