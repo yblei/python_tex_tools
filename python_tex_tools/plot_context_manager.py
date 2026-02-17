@@ -20,7 +20,7 @@ class make_plt_look_like_latex:
         # Configure LaTeX settings for matplotlib
         if matplotlib_params is not None:
             # update default settings with user-defined settings
-            for key, value in self.matplotlib_params.items():
+            for key, value in matplotlib_params.items():
                 self.default_settings[key] = value
             
     def __enter__(self):
