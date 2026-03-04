@@ -105,12 +105,48 @@ class TexExporter:
             self.repo_path = local_repo_path
         else:
             print(f"Using existing local mirror at {local_mirror_path}")
-            # Fetch latest changes without destructive reset
-            subprocess.run(
-                ['git', 'fetch', 'origin'],
+            # Pull with rebase to sync with remote and discard local changes
+            print("Syncing with remote (discarding local changes)...")
+            result = subprocess.run(
+                ['git', 'pull', '--rebase'],
                 cwd=local_repo_path,
-                check=True
+                capture_output=True,
+                text=True
             )
+            
+            if result.returncode != 0:
+                print(f"Git pull output: {result.stdout}")
+                print(f"Git pull error: {result.stderr}")
+                # If rebase fails, try hard reset to remote
+                print("Rebase failed, performing hard reset to remote...")
+                
+                # Get current branch
+                branch_result = subprocess.run(
+                    ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                    cwd=local_repo_path,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                current_branch = branch_result.stdout.strip()
+                
+                # Fetch first
+                subprocess.run(
+                    ['git', 'fetch', 'origin'],
+                    cwd=local_repo_path,
+                    check=True
+                )
+                
+                # Hard reset to remote
+                subprocess.run(
+                    ['git', 'reset', '--hard', f'origin/{current_branch}'],
+                    cwd=local_repo_path,
+                    check=True
+                )
+                print(f"✓ Reset to origin/{current_branch}")
+            else:
+                print("✓ Synced with remote")
+            
             self.repo_path = local_repo_path
     
     def _get_authenticated_url(self, git_url: str) -> str:
@@ -248,7 +284,7 @@ class TexExporter:
             check=True
         )
         
-        # Git push (normal push, no --force needed even with force_overwrite)
+        # Git push with automatic handling of non-fast-forward errors
         result = subprocess.run(
             ['git', 'push'],
             cwd=self.repo_path,
@@ -256,10 +292,43 @@ class TexExporter:
             text=True
         )
         
+        # Handle non-fast-forward errors automatically
         if result.returncode != 0:
-            print(f"Git push output: {result.stdout}")
-            print(f"Git push error: {result.stderr}")
-            raise RuntimeError(f"Git push failed: {result.stderr}")
+            if "non-fast-forward" in result.stderr or "rejected" in result.stderr:
+                print("⚠ Non-fast-forward error detected - handling automatically...")
+                
+                # Pull with rebase to integrate remote changes, then push
+                # Note: Overleaf doesn't support --force, so we always use rebase
+                print("  Pulling remote changes with rebase...")
+                pull_result = subprocess.run(
+                    ['git', 'pull', '--rebase'],
+                    cwd=self.repo_path,
+                    capture_output=True,
+                    text=True
+                )
+                
+                if pull_result.returncode != 0:
+                    print(f"Git pull output: {pull_result.stdout}")
+                    print(f"Git pull error: {pull_result.stderr}")
+                    raise RuntimeError(f"Git pull --rebase failed: {pull_result.stderr}")
+                
+                print("  Retrying push...")
+                result = subprocess.run(
+                    ['git', 'push'],
+                    cwd=self.repo_path,
+                    capture_output=True,
+                    text=True
+                )
+                
+                if result.returncode != 0:
+                    print(f"Git push output: {result.stdout}")
+                    print(f"Git push error: {result.stderr}")
+                    raise RuntimeError(f"Git push failed after rebase: {result.stderr}")
+            else:
+                # Other git error
+                print(f"Git push output: {result.stdout}")
+                print(f"Git push error: {result.stderr}")
+                raise RuntimeError(f"Git push failed: {result.stderr}")
         
         print("✓ Successfully pushed to Overleaf!")
         print(result.stdout)
