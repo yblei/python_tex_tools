@@ -93,6 +93,11 @@ class TexExporter:
             self.repo_path = local_repo_path
         else:
             print(f"Using existing local mirror at {local_mirror_path}")
+
+            # git pull the changes
+            # git fetch origin && git reset --hard origin/main
+            subprocess.run(['git','pull' ], cwd=local_repo_path, check=True)
+            subprocess.run(['git', 'reset', '--hard'], cwd=local_repo_path, check=True)
             self.repo_path = local_repo_path
 
     def push_to_overleaf(self, commit_message: str = "Update from python_tex_tools"):
@@ -211,11 +216,12 @@ class TexExporter:
         }
         
         if bf_options is not None:
-            for key, value in bf_default_options.items():
-                if key not in bf_options:
-                    raise ValueError(f"Unsupported key {key}. Supported Keys are: {bf_default_options.keys()}")
-                else:
-                    bf_default_options[key] = bf_options[key]
+            for key, value in bf_options.items():
+                if key not in bf_default_options:
+                    raise ValueError(
+                        f"Unsupported key {key}. Supported Keys are: {bf_default_options.keys()}"
+                    )
+                bf_default_options[key] = value
         
         if print_best_values_bf:
             table = print_best_values_fat(table, **bf_default_options)

@@ -29,17 +29,26 @@ def print_best_values_fat(df: pd.DataFrame, axis:int = 0, higher_or_lower_is_bet
     # remove all non numerical values from the dataframe
     df_numerical_only = df_numerical_only.map(regex_get_digits_only)
     
-    # if higher_or_lower_is_better is a string, convert it to a list of the same lenght as the dimension
+    if axis not in (0, 1):
+        raise ValueError("The axis parameter must be either 0 or 1.")
+
+    # if higher_or_lower_is_better is a string, convert it to a list sized to the label axis
+    # axis=0 means we annotate columns; axis=1 means we annotate rows
+    label_axis_len = df_numerical_only.shape[1] if axis == 0 else df_numerical_only.shape[0]
     if isinstance(higher_or_lower_is_better, str):
-        higher_or_lower_is_better = [higher_or_lower_is_better for _ in range(df_numerical_only.shape[axis])]
-        
-    # rows and columns are inverted in the following test     
-    test_axis = (0 if axis == 1 else 1)
-    
+        higher_or_lower_is_better = [
+            higher_or_lower_is_better for _ in range(label_axis_len)
+        ]
+
     # check if the length of the higher_or_lower_is_better list is the same as the number of columns/ rows in the table
-    if len(higher_or_lower_is_better) != df_numerical_only.shape[test_axis]:
-        raise ValueError(f"The length of the higher_or_lower_is_better list ({len(higher_or_lower_is_better)}) does not match the number of columns/ rows in the table ({df_numerical_only.shape[test_axis]}).")
-    
+    print(
+        f"shape: {df_numerical_only.shape}, axis: {axis}, higher_or_lower_is_better: {higher_or_lower_is_better}"
+    )
+    if len(higher_or_lower_is_better) != label_axis_len:
+        raise ValueError(
+            f"The length of the higher_or_lower_is_better list ({len(higher_or_lower_is_better)}) does not match the number of columns/ rows in the table ({label_axis_len})."
+        )
+
     # add the up/ down arrows to the entries in the rows/ columns names
     if axis == 0:
         entries = df.columns
