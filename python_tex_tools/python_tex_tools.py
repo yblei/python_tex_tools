@@ -257,7 +257,7 @@ class TexExporter:
         export_path = Path(export_path).resolve()
         var_file_path = os.path.join(export_path, var_file_name)
 
-        print("Writing output to %s." % var_file_path)
+        print("Writing output to %s" % var_file_path)
         f = open(var_file_path, "wt")
         
         print("Exporting elements as LaTex functions. PGF files will be copied to the output directory.")
