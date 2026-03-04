@@ -41,9 +41,6 @@ def print_best_values_fat(df: pd.DataFrame, axis:int = 0, higher_or_lower_is_bet
         ]
 
     # check if the length of the higher_or_lower_is_better list is the same as the number of columns/ rows in the table
-    print(
-        f"shape: {df_numerical_only.shape}, axis: {axis}, higher_or_lower_is_better: {higher_or_lower_is_better}"
-    )
     if len(higher_or_lower_is_better) != label_axis_len:
         raise ValueError(
             f"The length of the higher_or_lower_is_better list ({len(higher_or_lower_is_better)}) does not match the number of columns/ rows in the table ({label_axis_len})."
