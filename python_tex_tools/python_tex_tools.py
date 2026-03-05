@@ -479,14 +479,6 @@ class TexExporter:
         
         table_code = table.to_latex(escape=False)
 
-        # replace hline with tpp and bottomrule
-        table_code = table_code.replace(r"\hline", r"\midrule")
-        table_code = table_code.replace(r"\midrule", r"\toprule",1)
-
-        # replace the last -> replace first in reversed string
-        target_reverse = (r"\midrule")[::-1]
-        table_code = (table_code[::-1].replace(target_reverse, (r"\bottomrule")[::-1], 1))[::-1]
-
         self.tab_list.append([name, table_code])
         if self.verbose:
             print(f"New Table:  \\{self.tab_function_prefix}{name}")
